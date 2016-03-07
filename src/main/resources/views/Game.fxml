@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
@@ -13,8 +14,8 @@
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
    </rowConstraints>
    <children>
-      <Pane fx:id="consolePane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="400.0" minWidth="800.0" style="-fx-border-color: white;" styleClass="dark-background" GridPane.halignment="LEFT" GridPane.valignment="TOP" />
+      <Pane fx:id="consolePane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="200.0" minWidth="400.0" style="-fx-border-color: white;" styleClass="dark-background" GridPane.halignment="LEFT" GridPane.valignment="TOP" />
       <VBox prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1" />
-      <TextArea prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
+      <TextArea disable="true" prefHeight="200.0" prefWidth="200.0" style="-fx-border-color: white;" styleClass="dark-background" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
    </children>
 </GridPane>

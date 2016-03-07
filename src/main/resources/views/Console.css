@@ -9,6 +9,16 @@
     -fx-text-fill: white;
 }
 
+.text-area {
+    -fx-font-size: 12pt;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-text-fill: white;
+}
+
+.text-area .content {
+    -fx-background-color: black;
+}
+
 /*
  * Metro style Push Button
  * Author: Pedro Duque Vieira
@@ -53,6 +63,7 @@
     -fx-background-color: -fx-focus-color;
     -fx-text-fill: #ffffff;
 }
+
 
 .button:default:hover {
     -fx-background-color: derive(-fx-focus-color,30%);
