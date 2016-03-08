@@ -4,16 +4,12 @@ import javafx.fxml.FXML
 import javafx.scene.layout.Pane
 
 import control.ConsoleFx
-import model.{World}
+import model.World
 import org.mtrupkin.core.{Point, Points}
 
 import scalafx.Includes._
-import scalafx.application.Platform
-import scalafx.scene.control.Alert
-import scalafx.scene.control.Alert.AlertType
-import scalafx.scene.image.{Image, ImageView}
+import scalafx.scene.input.KeyCode
 import scalafx.scene.input.KeyCode._
-import scalafx.scene.input.{KeyCode, KeyCodeCombination, KeyCombination}
 import scalafx.scene.{control => sfxc, input => sfxi, layout => sfxl, shape => sfxs, text => sfxt}
 
 /**
@@ -35,6 +31,12 @@ trait Game { self: Controller =>
         }
       }
 
+      new sfxl.Pane(console) {
+        onMouseClicked = (e: sfxi.MouseEvent) => handleMouseClicked(e)
+        onMouseMoved = (e: sfxi.MouseEvent) => handleMouseMove(e)
+        onMouseExited = (e: sfxi.MouseEvent) => handleMouseExit(e)
+      }
+
       consolePane.getChildren.clear()
       consolePane.getChildren.add(console)
 
@@ -47,6 +49,20 @@ trait Game { self: Controller =>
         changeState(new GameController(World()))
       }
     }
+
+    def handleMouseMove(event: sfxi.MouseEvent): Unit = {
+      for (p <- mouseToPoint(event)) {
+        console.cursor = Some(p)
+      }
+    }
+
+    def handleMouseClicked(event: sfxi.MouseEvent): Unit = {
+    }
+
+    def handleMouseExit(event: sfxi.MouseEvent): Unit = {
+    }
+
+    def mouseToPoint(mouseEvent: sfxi.MouseEvent): Option[Point] = console.pixelToCell(mouseEvent.x, mouseEvent.y)
 
     def handleKeyPressed(event: sfxi.KeyEvent): Unit = {
       event.consume()

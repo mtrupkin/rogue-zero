@@ -9,16 +9,17 @@ import model.{Cell, World}
 import org.mtrupkin.console.ScreenChar
 import org.mtrupkin.core.{Point, Matrix, Size}
 import collection.JavaConversions._
+import scalafx.scene.layout.Border
 import scalafx.scene.paint.Paint
 
 /**
   * Created by mtrupkin on 2/10/2016.
   */
 class ConsoleFx(val size: Size = Size(40, 20)) extends Pane {
-  val fontSize: Int = 38 // 32
+  val fontSize: Int = 35 // 32
   //val is = getClass.getResourceAsStream("/fonts/RobotoMono-Regular.ttf")
-  val font = Font.loadFont(getClass.getResource("/fonts/RobotoMono-Regular.ttf").toExternalForm, 35)
-  //val font = java.awt.Font.font("Consolas", FontWeight.NORMAL, fontSize)
+  //val font = Font.loadFont(getClass.getResource("/fonts/RobotoMono-Regular.ttf").toExternalForm, fontSize)
+  val font = Font.font("Consolas", FontWeight.NORMAL, fontSize)
   val cellSize = ConsoleFx.charBounds(font)
 
   val labels = new Matrix[Label](size)
@@ -28,6 +29,8 @@ class ConsoleFx(val size: Size = Size(40, 20)) extends Pane {
   setMinSize(sizeX, sizeY)
 
   size.foreach(init)
+
+  var cursor: Option[Point] = None
 
   def init(p: Point): Unit = {
     val l = new Label()
@@ -63,7 +66,9 @@ class ConsoleFx(val size: Size = Size(40, 20)) extends Pane {
       val r0 = Integer.toHexString(r)
       val g0 = Integer.toHexString(g)
       val b0 = Integer.toHexString(b)
-      l.setStyle(s"-fx-background-color: #$r0$g0$b0")
+      val borderColor = if (cursor == Some(p)) "red" else "transparent"
+      l.setStyle(s"-fx-background-color: #$r0$g0$b0; -fx-border-color: $borderColor;")
+
     }
 
     labels(p).setText(sc)
@@ -77,24 +82,23 @@ class ConsoleFx(val size: Size = Size(40, 20)) extends Pane {
     (p.x * width + borderWidth, p.y * height + borderHeight)
   }
 
-//  def pixelToCell(x: Double, y: Double): Option[Point] = {
-//    def floor(d: Double): Int = { Math.floor(d).toInt }
-//
-//    val (width, height) = cellSize
-//    val c = Point(floor(x / width), floor(y / height))
-//    if (size.in(c)) Some(c) else None
-//  }
+  def pixelToCell(x: Double, y: Double): Option[Point] = {
+    def floor(d: Double): Int = { Math.floor(d).toInt }
+
+    val (width, height) = cellSize
+    val c = Point(floor(x / width), floor(y / height))
+    if (size.in(c)) Some(c) else None
+  }
 }
 
 object ConsoleFx {
   def charBounds(f: Font): (Double, Double) = {
-    import java.lang.Math.round
     val fl = com.sun.javafx.tk.Toolkit.getToolkit.getFontLoader
 
     val fontWidth = fl.computeStringWidth(" ", f)
     val metrics = fl.getFontMetrics(f)
     println(metrics)
     println(s"fontWidth: $fontWidth")
-    (Math.floor(fontWidth), Math.floor(metrics.getLineHeight+2))
+    (Math.floor(fontWidth+2), Math.floor(metrics.getLineHeight+3))
   }
 }

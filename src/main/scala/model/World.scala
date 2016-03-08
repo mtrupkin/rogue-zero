@@ -95,7 +95,7 @@ object World {
   }
 
   def apply(): World = {
-    val image = readRexImage("level-2")
+    val image = readRexImage("level-1")
     val map = image.layers(0)
     val metaMap = image.layers(1)
     val start = readPlayerStartPosition(metaMap)
