@@ -36,7 +36,7 @@ class ConsoleFx(val size: Size = Size(40, 20)) extends Pane {
     val l = new Label()
     l.setTextFill(Color.WHITE)
     l.setFont(font)
-    l.setStyle("-fx-border-color: white;")
+//    l.setStyle("-fx-border-color: white;")
     labels(p) = l
 
 
@@ -66,9 +66,8 @@ class ConsoleFx(val size: Size = Size(40, 20)) extends Pane {
       val r0 = Integer.toHexString(r)
       val g0 = Integer.toHexString(g)
       val b0 = Integer.toHexString(b)
-      val borderColor = if (cursor == Some(p)) "red" else "transparent"
-      l.setStyle(s"-fx-background-color: #$r0$g0$b0; -fx-border-color: $borderColor;")
 
+      l.setStyle(s"-fx-background-color: #$r0$g0$b0; -fx-border-color: transparent")
     }
 
     labels(p).setText(sc)

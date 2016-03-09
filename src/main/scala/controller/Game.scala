@@ -70,7 +70,8 @@ trait Game { self: Controller =>
       val direction = getDirection(code)
       code match {
         case ESCAPE => exit()
-        case _ => direction.map(p => world.movePlayer(p))
+        case TAB => world.player.nextAction()
+        case _ => direction.map( p => if (event.controlDown) world.specialAction(p) else world.action(p) )
       }
     }
 

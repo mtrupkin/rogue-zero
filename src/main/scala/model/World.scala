@@ -11,7 +11,9 @@ import scala.util.Random
 /**
   * Created by mtrupkin on 2/10/2016.
   */
-trait Terrain {
+sealed trait Terrain {
+  def name: String
+  def sc: ScreenChar
   def move: Boolean
 }
 
@@ -25,13 +27,21 @@ case class Cell(
   move: Boolean
 ) extends Terrain
 
-object Cell {
-  def apply(sc: ScreenChar): Cell = {
+class Door(var open: Boolean = false) extends Terrain {
+  def name = if (open) "Opened Door" else "Opened Door"
+  def move = open
+  def sc: ScreenChar = if (open) ' ' else '+'
+}
+
+object Terrain {
+  def apply(sc: ScreenChar): Terrain = {
     sc.c match {
       case ' ' => floor(sc)
+      case '+' => door(sc)
       case _ => wall(sc)
     }
   }
+  def door(sc: ScreenChar) = new Door()
   def floor(sc: ScreenChar) = Cell("Floor", sc, move = true)
   def wall(sc: ScreenChar) = Cell("Wall", sc, move = false)
 }
@@ -40,23 +50,40 @@ class World(val player: Player) extends TerrainMap {
   val size = Size(40, 20)
 
   var monsters = List[Monster]()
-  val cells = new Matrix[Cell](size)
+  val cells = new Matrix[Terrain](size)
 
-  def apply(p: Point): Cell = cells(p)
+  def apply(p: Point): Terrain = cells(p)
 
-  def movePlayer(direction: Point): Unit = {
+  def action(direction: Point): Unit = {
     val newPosition = player.position + direction
-    monsters.find(_.position == newPosition) match {
-      case Some(monster) => {
-        player.attack(monster)
-        monsters = monsters.filter(_.hitPoints > 0)
-      }
-      case None => if (cells(newPosition).move) {
-        player.position = newPosition
 
-        monsters.foreach(moveMonster(_))
-      }
+    this(newPosition) match {
+      case d: Door => d.open = true
+      case _ =>
     }
+
+    // either attack or a move
+    monsters.find(_.position == newPosition) match {
+      case Some(monster) => player.attack(monster)
+      case None => move(newPosition)
+    }
+    endAction()
+  }
+
+  def move(p: Point): Unit = {
+    if (cells(p).move) {
+      player.position = p
+    }
+  }
+
+  def specialAction(direction: Point): Unit = {
+    player.action().perform(this, direction)
+    endAction()
+  }
+
+  def endAction(): Unit = {
+    monsters = monsters.filter(_.hitPoints > 0)
+    monsters.foreach(moveMonster(_))
   }
 
   val aStar = new AStar(this, size)
@@ -99,10 +126,10 @@ object World {
     val map = image.layers(0)
     val metaMap = image.layers(1)
     val start = readPlayerStartPosition(metaMap)
-    val player = new Player(start, 1, '@')
+    val player = new Player(start, 5, '@')
     val world = new World(player)
     addTestMonster(world, metaMap)
-    map.foreach((p, sc) => world.cells(p) = Cell(sc))
+    map.foreach((p, sc) => world.cells(p) = Terrain(sc))
     world
   }
 
