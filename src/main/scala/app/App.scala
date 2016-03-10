@@ -5,7 +5,7 @@ import javafx.application.Application
 import javafx.stage.Stage
 
 import controller.Controller
-import model.World
+import model.{WorldBuilder, World}
 
 
 class ConsoleApp extends Application {
@@ -17,7 +17,7 @@ class ConsoleApp extends Application {
 		primaryStage.setTitle("Rogue")
 
 		object Controller extends Controller {
-			lazy val initialState: ControllerState = new GameController(World())
+			lazy val initialState: ControllerState = new GameController(WorldBuilder())
 			lazy val stage = primaryStage
 		}
 

@@ -4,7 +4,7 @@ import javafx.fxml.FXML
 import javafx.scene.layout.Pane
 
 import control.ConsoleFx
-import model.World
+import model.{WorldBuilder, World}
 import org.mtrupkin.core.{Point, Points}
 
 import scalafx.Includes._
@@ -46,7 +46,7 @@ trait Game { self: Controller =>
     override def update(elapsed: Int): Unit = {
       console.draw(world)
       if (world.player.hitPoints <= 0) {
-        changeState(new GameController(World()))
+        changeState(new GameController(WorldBuilder()))
       }
     }
 

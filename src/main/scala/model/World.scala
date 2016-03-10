@@ -38,7 +38,7 @@ case class Cell(
 case class Door(areaID: Int, var open: Boolean = false) extends Terrain {
   def name = if (open) "Opened Door" else "Closed Door"
   def move = open
-  def sc: ScreenChar = if (open) ' ' else '+'
+  def sc: ScreenChar = if (open) '.' else '+'
 }
 
 object Terrain {
@@ -49,8 +49,9 @@ object Terrain {
       case _ => wall(areaID, sc)
     }
   }
-  def floor(areaID: Int, sc: ScreenChar) = Cell(areaID, "Floor", sc, move = true)
+  def floor(areaID: Int, sc: ScreenChar) = Cell(areaID, "Floor", sc.copy(c = '.'), move = true)
   def wall(areaID: Int, sc: ScreenChar) = Cell(areaID, "Wall", sc, move = false)
+
 
   import Colors._
   val unexplored: ScreenChar = ScreenChar(' ', LightGrey, Black)
@@ -58,9 +59,8 @@ object Terrain {
 
 class World(val player: Player) extends TerrainMap {
   val size = Size(40, 20)
-
-  var monsters = List[Monster]()
   val cells = new Matrix[Terrain](size)
+  var monsters = List[Monster]()
 
   def apply(p: Point): Terrain = cells(p)
 
@@ -160,48 +160,3 @@ class World(val player: Player) extends TerrainMap {
   }
 }
 
-object World {
-  protected def readRexImage(name: String): RexPaintImage = {
-    val is = getClass.getResourceAsStream(s"/rex/$name.xp")
-    RexPaintImage.read(name, is)
-  }
-
-  protected def readPlayerStartPosition(matrix: Matrix[ScreenChar]): Point = {
-    var start = Points.Origin
-    matrix.foreach((p, sc) => if (sc.c == 'S') {
-      matrix(p) = sc.copy(c = ' ')
-      start = p
-    })
-
-    start
-  }
-
-  def apply(): World = {
-    val image = readRexImage("level-1")
-    val map = image.layers(0)
-    val metaMap = image.layers(1)
-    val start = readPlayerStartPosition(metaMap)
-    val player = new Player(start, 5, '@')
-    val world = new World(player)
-    addTestMonster(world, metaMap)
-    map.foreach((p, sc) => world.cells(p) = Terrain(sc, areaID(p, world.size)))
-
-    world.explore(player.position)
-
-    world
-  }
-
-  def areaID(p: Point, size: Size): Int = {
-    ((p.y / 5) * size.width) + (p.x / 5)
-  }
-
-  def addTestMonster(world: World, matrix: Matrix[ScreenChar]): Unit = {
-    var acc = ListBuffer[Monster]()
-    matrix.foreach((p, sc) => if (sc.c == 'M') {
-      val c = ('A' + Random.nextInt(26)).toChar
-      acc += Monster(p, 2, c)
-    })
-
-    world.monsters = acc.toList
-  }
-}
