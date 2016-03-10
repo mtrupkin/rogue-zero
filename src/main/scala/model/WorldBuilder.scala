@@ -81,4 +81,8 @@ object WorldBuilder {
     (terrainMap, metaMap)
   }
 
+
+  def inputDirection(outputDirection: Point): Point = (outputDirection.x * -1, outputDirection.y * -1)
+
+  def getInputArea(outputDirection: Point): Matrix[Terrain] = ???
 }
