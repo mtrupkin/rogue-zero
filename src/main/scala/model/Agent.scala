@@ -62,7 +62,10 @@ class Player(
   // move 2 squares
   case object Dash extends Action  {
     def perform(world: World, direction: Point): Unit = {
-      world.action(Point(direction.x*2, direction.y*2))
+      val canDash = world.attackOrMove(direction)
+      if (canDash) {
+        world.attackOrMove(direction)
+      }
     }
   }
 

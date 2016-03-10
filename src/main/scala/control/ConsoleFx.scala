@@ -47,7 +47,7 @@ class ConsoleFx(val size: Size = Size(40, 20)) extends Pane {
 
   // draw to window
   def draw(world: World): Unit = {
-    size.foreach(p => draw(p, world(p).sc))
+    size.foreach(p => draw(p, world(p).display))
 
     val entities = world.player :: world.monsters
     entities.foreach(e => draw(e.position, e.sc))

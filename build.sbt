@@ -11,7 +11,7 @@ licenses += ("MIT", url("http://www.opensource.org/licenses/mit-license.html"))
 fork in run := true
 
 resolvers ++= Seq(
-	Resolver.url("me.mtrupkin ivy repo", url("http://dl.bintray.com/mtrupkin/ivy/"))(Resolver.ivyStylePatterns)
+	Resolver.url("me.mtrupkin ivy repo", url("http://dl.bintray.com/mtrupkin/ivy/"))(Resolver.ivyStylePatterns)	
 )
 
 libraryDependencies ++= Seq(
