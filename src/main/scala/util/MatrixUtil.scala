@@ -15,8 +15,8 @@ object MatrixUtil {
     transposed
   }
 
-  private def reverseRows(m: Matrix[ScreenChar]): Unit = {
-    def reverseRow[T](m: Matrix[ScreenChar], rowIndex: Int): Unit = {
+  private def reverseRows(m: Matrix[ScreenChar]): Matrix[ScreenChar] = {
+    def reverseRow[T](m: Matrix[ScreenChar], n: Matrix[ScreenChar], rowIndex: Int): Unit = {
       import m.size
       val row = for {
         i <- Range(0, size.width)
@@ -24,14 +24,16 @@ object MatrixUtil {
       val reversed = row.reverse
       for {
         i <- Range(0, size.width)
-      } m.update((i, rowIndex), reversed(i))
+      } n.update((i, rowIndex), reversed(i))
     }
 
-    Range(0, m.size.height).foreach(reverseRow(m, _))
+    val n = new Matrix[ScreenChar](m.size)
+    Range(0, m.size.height).foreach(reverseRow(m, n, _))
+    n
   }
 
-  private def reverseColumns(m: Matrix[ScreenChar]): Unit = {
-    def reverseColumn(m: Matrix[ScreenChar], columnIndex: Int): Unit = {
+  private def reverseColumns(m: Matrix[ScreenChar]): Matrix[ScreenChar] = {
+    def reverseColumn(m: Matrix[ScreenChar], n: Matrix[ScreenChar], columnIndex: Int): Unit = {
       import m.size
       val column = for {
         i <- Range(0, size.height)
@@ -39,38 +41,34 @@ object MatrixUtil {
       val reversed = column.reverse
       for {
         i <- Range(0, size.width)
-      } m.update((columnIndex, i), reversed(i))
+      } n.update((columnIndex, i), reversed(i))
     }
 
-    Range(0, m.size.width).foreach(reverseColumn(m, _))
+    val n = new Matrix[ScreenChar](m.size)
+    Range(0, m.size.width).foreach(reverseColumn(m, n, _))
+    n
   }
 
   def rotateClockwise(m: Matrix[ScreenChar]): Matrix[ScreenChar] = {
     val n = transpose(m)
     reverseRows(n)
-    n
   }
 
   def rotateCounterClockwise(m: Matrix[ScreenChar]): Matrix[ScreenChar] = {
     val n = transpose(m)
     reverseColumns(n)
-    n
   }
 
   def rotate180(m: Matrix[ScreenChar]): Matrix[ScreenChar] = {
-    val n = new Matrix[ScreenChar](m.size)
-    reverseRows(n)
+    val n = reverseRows(m)
     reverseColumns(n)
-    n
   }
 
   def flipX(m: Matrix[ScreenChar]): Matrix[ScreenChar] = {
     reverseColumns(m)
-    m
   }
 
   def flipY(m: Matrix[ScreenChar]): Matrix[ScreenChar] = {
     reverseRows(m)
-    m
   }
 }

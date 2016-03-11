@@ -43,6 +43,10 @@ case class Door(areaID: Int, var open: Boolean = false) extends Terrain {
 
 object Terrain {
   def apply(sc: ScreenChar, areaID: Int): Terrain = {
+    if (sc == null) {
+      println("problem")
+    }
+
     sc.c match {
       case ' ' => floor(areaID, sc)
       case '+' => new Door(areaID)
