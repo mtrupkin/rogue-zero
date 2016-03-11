@@ -29,11 +29,12 @@ object WorldBuilder {
 
     areaMap.areas.size.foreach(p => {
       if(Option(areaMap.areas(p)).isDefined) {
-        writeArea(readArea(areaMap.areas(p), monsters), scale(p, 5), world)
+        writeArea(readArea(areaMap.areas(p), p, monsters), scale(p, 5), world)
       }
     })
 
     areaMap.debug()
+    world.monsters = monsters.toList
 
     world.explore(player.position)
 
@@ -51,9 +52,9 @@ object WorldBuilder {
     (terrainMap, start)
   }
 
-  def readArea(area: Area, monsters: ListBuffer[Monster]): Matrix[Terrain] = {
+  def readArea(area: Area, p0: Point, monsters: ListBuffer[Monster]): Matrix[Terrain] = {
     val (terrainMap, metaMap) = parseArea(area)
-    metaMap.foreach((p, sc) => if (sc.c == 'M') monsters += Monster(p, 2, 'M'))
+    metaMap.foreach((p, sc) => if (sc.c == 'M') monsters += Monster(toWorld(p0, p), 2, 'M'))
     terrainMap
   }
 

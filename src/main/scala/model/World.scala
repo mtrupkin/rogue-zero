@@ -1,13 +1,8 @@
 package model
 
-import org.mtrupkin.console.ScreenChar
-import org.mtrupkin.console.Colors
-import org.mtrupkin.core.{Points, Matrix, Size, Point}
+import org.mtrupkin.console.{RGB, ScreenChar, Colors}
+import org.mtrupkin.core.{Matrix, Size, Point}
 import pathfinding.AStar
-import rexpaint.RexPaintImage
-
-import scala.collection.mutable.ListBuffer
-import scala.util.Random
 
 /**
   * Created by mtrupkin on 2/10/2016.
@@ -36,9 +31,14 @@ case class Cell(
 ) extends Terrain
 
 case class Door(areaID: Int, var open: Boolean = false) extends Terrain {
+  val floorColor = RGB(70, 70, 70)
+  val doorColor = RGB(50, 50, 50)
+  val openScreenChar = ScreenChar('.', Colors.White, floorColor)
+  val closedScreenChar = ScreenChar('+', Colors.White, doorColor)
+
   def name = if (open) "Opened Door" else "Closed Door"
   def move = open
-  def sc: ScreenChar = if (open) '.' else '+'
+  def sc: ScreenChar = if (open) openScreenChar else closedScreenChar
 }
 
 object Terrain {
