@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
 <?import java.lang.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<GridPane fx:id="rootPane" alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1024.0" prefWidth="1280.0" styleClass="dark-background" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<GridPane fx:id="rootPane" alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1024.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
    <columnConstraints>
       <ColumnConstraints hgrow="NEVER" minWidth="10.0" />
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -15,7 +16,40 @@
    </rowConstraints>
    <children>
       <Pane fx:id="consolePane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="200.0" minWidth="400.0" style="-fx-border-color: white;" styleClass="dark-background" GridPane.halignment="LEFT" GridPane.valignment="TOP" />
-      <VBox prefHeight="200.0" prefWidth="100.0" GridPane.columnIndex="1" />
-      <TextArea disable="true" prefHeight="200.0" prefWidth="200.0" style="-fx-border-color: white;" styleClass="dark-background" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
+      <GridPane styleClass="dark" GridPane.columnIndex="1">
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" maxWidth="435.0" minWidth="120.0" prefWidth="120.0" />
+          <ColumnConstraints hgrow="SOMETIMES" maxWidth="789.0" minWidth="10.0" prefWidth="774.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="10.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="10.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
+        </rowConstraints>
+         <children>
+            <Label text="Hit Points:" />
+            <Label text="Attack:" GridPane.rowIndex="2" />
+            <Label layoutX="10.0" layoutY="75.0" text="Damage:" GridPane.rowIndex="3" />
+            <Label layoutX="10.0" layoutY="175.0" text="Modifier:" GridPane.rowIndex="6" />
+            <Label layoutX="10.0" layoutY="180.0" text="Defense:" GridPane.rowIndex="4" />
+            <Label fx:id="hitPoints" layoutX="10.0" layoutY="60.0" text="0" GridPane.columnIndex="1" />
+            <Label fx:id="attack" layoutX="10.0" layoutY="140.0" text="0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <Label fx:id="damage" layoutX="10.0" layoutY="100.0" text="0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            <Label fx:id="modifier" layoutX="10.0" layoutY="20.0" text="0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+            <Label fx:id="defense" layoutX="10.0" layoutY="180.0" text="0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+         </children>
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+      </GridPane>
+      <TextArea fx:id="textArea" disable="true" prefHeight="200.0" prefWidth="200.0" style="-fx-border-color: white;" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
    </children>
+   <padding>
+      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+   </padding>
 </GridPane>

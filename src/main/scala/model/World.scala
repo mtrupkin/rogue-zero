@@ -4,6 +4,8 @@ import org.mtrupkin.console.{RGB, ScreenChar, Colors}
 import org.mtrupkin.core.{Matrix, Size, Point}
 import pathfinding.AStar
 
+import scala.collection.mutable.ListBuffer
+
 /**
   * Created by mtrupkin on 2/10/2016.
   */
@@ -31,9 +33,8 @@ case class Cell(
 ) extends Terrain
 
 case class Door(areaID: Int, var open: Boolean = false) extends Terrain {
-  val floorColor = RGB(70, 70, 70)
   val doorColor = RGB(50, 50, 50)
-  val openScreenChar = ScreenChar('.', Colors.White, floorColor)
+  val openScreenChar = ScreenChar('.', Colors.White, Terrain.floorColor)
   val closedScreenChar = ScreenChar('+', Colors.White, doorColor)
 
   def name = if (open) "Opened Door" else "Closed Door"
@@ -42,20 +43,22 @@ case class Door(areaID: Int, var open: Boolean = false) extends Terrain {
 }
 
 object Terrain {
-  def apply(sc: ScreenChar, areaID: Int): Terrain = {
-    if (sc == null) {
-      println("problem")
-    }
+  val floorColor = RGB(70, 70, 70)
 
+  def apply(sc: ScreenChar, areaID: Int): Terrain = {
     sc.c match {
       case ' ' => floor(areaID, sc)
       case '+' => new Door(areaID)
       case _ => wall(areaID, sc)
     }
   }
+
   def floor(areaID: Int, sc: ScreenChar) = Cell(areaID, "Floor", sc.copy(c = '.'), move = true)
   def wall(areaID: Int, sc: ScreenChar) = Cell(areaID, "Wall", sc, move = false)
 
+  val outOfBoundsWall: Cell = wall(-1, ScreenChar('#', Colors.White, floorColor))
+  //val inBoundsWall: Cell = wall(-2, ScreenChar('#', Colors.White, floorColor))
+  def inBoundsWall(): Cell = wall(0, ScreenChar('#', Colors.White, floorColor))
 
   import Colors._
   val unexplored: ScreenChar = ScreenChar(' ', LightGrey, Black)
@@ -66,29 +69,52 @@ class World(val player: Player) extends TerrainMap {
   val cells = new Matrix[Terrain](size)
   var monsters = List[Monster]()
 
-  def apply(p: Point): Terrain = cells(p)
+  def apply(p: Point): Terrain = if(size.in(p)) cells(p) else Terrain.outOfBoundsWall
 
-  def action(direction: Point): Unit = {
-    attackOrMove(direction)
-    endAction()
+  def action(direction: Point): String = {
+    val (_, playerText) = attackOrMove(direction)
+    val gameText = endAction()
+
+    val s1 = playerText match {
+      case Some(t) => s"\n$t"
+      case None => ""
+    }
+    val s2 = gameText match {
+      case Some(t) => s"\n$t"
+      case None => ""
+    }
+    s"$s1$s2"
   }
 
-  def specialAction(direction: Point): Unit = {
-    player.action().perform(this, direction)
-    endAction()
+  def specialAction(direction: Point): String = {
+    val playerText = player.action().perform(this, direction)
+    val gameText = endAction()
+
+    val s1 = playerText match {
+      case Some(t) => s"\n$t"
+      case None => ""
+    }
+    val s2 = gameText match {
+      case Some(t) => s"\n$t"
+      case None => ""
+    }
+    s"$s1$s2"
   }
 
-  def endAction(): Unit = {
+  def endAction(): Option[String] = {
+    val text = ListBuffer[String]()
+    monsters.foreach(m => if (m.hitPoints <= 0) text.append(s"${m.name} died"))
     monsters = monsters.filter(_.hitPoints > 0)
-    monsters.foreach(moveMonster(_))
+    monsters.foreach(moveMonster(_).map(t => text.append(t)))
+    if (text.isEmpty) None else Some(text.mkString("\n"))
   }
 
   // returns true if just a move and no other action
-  def attackOrMove(direction: Point): Boolean = {
+  def attackOrMove(direction: Point): (Boolean, Option[String]) = {
     val newPosition = player.position + direction
     // either attack or a move
     monsters.find(_.position == newPosition) match {
-      case Some(monster) => player.attack(monster); false
+      case Some(monster) => (false, Some(player.attack(monster)))
       case None => {
         this(newPosition) match {
           case d: Door => {
@@ -97,7 +123,7 @@ class World(val player: Player) extends TerrainMap {
           }
           case _ =>
         }
-        move(newPosition)
+        (move(newPosition), None)
       }
     }
   }
@@ -126,19 +152,21 @@ class World(val player: Player) extends TerrainMap {
 
   val aStar = new AStar(this, size)
 
-  def moveMonster(monster: Monster): Unit = {
+  def moveMonster(monster: Monster): Option[String] = {
     val search = aStar.search(monster, player.position, 15)
     search match {
       case _::path => {
         val position = path.head
         if (player.position == position) {
           monster.attack(player)
-          println(s"player hit points: ${player.hitPoints}")
         } else {
-          monster.position = path.head
+          if (!monsters.exists(m => m.position == path.head)) {
+            monster.position = path.head
+          }
+          None
         }
       }
-      case nil => return
+      case nil => None
     }
   }
 

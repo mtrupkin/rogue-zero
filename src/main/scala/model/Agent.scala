@@ -3,6 +3,7 @@ package model
 import org.mtrupkin.console.ScreenChar
 import org.mtrupkin.core.{Size, Point}
 
+import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 /**
@@ -14,21 +15,26 @@ trait Agent {
 
   // combat stats
   var damage: Int = 1
-  var attack: Int = 1
-  def modifier(): Int = 1
-  var defense: Int = 1
+  var attackRating: Int = 1
+
+  // situational modifiers
+  def modifier(): Int = 0
+  var defenseRating: Int = 1
 
   val sc: ScreenChar
 }
 
 case class Monster(
+  val name: String,
   var position: Point,
   var hitPoints: Int,
   val sc: ScreenChar) extends Agent {
-  def attack(player: Player): Unit = {
+  def attack(player: Player): Option[String] = {
     val bonusDamage = Combat.bonusDamage(this, player)
-
-    player.hitPoints -= bonusDamage
+    if (bonusDamage > 0 ) {
+      player.hitPoints -= bonusDamage
+      Some(s"Player damaged: $bonusDamage")
+    } else None
   }
 }
 
@@ -48,24 +54,26 @@ class Player(
 
   def action(): Action = actions(currentActionIndex)
 
-  def attack(monster: Monster): Unit = {
+  def attack(monster: Monster): String = {
     val bonusDamage = Combat.bonusDamage(this, monster)
     val totalDamage = damage + bonusDamage
-    println(s"attack damage: $totalDamage")
 
     monster.hitPoints -= totalDamage
+
+    s"Attack ${monster.name}: $totalDamage"
   }
 
   sealed trait Action {
-    def perform(world: World, direction: Point): Unit
+    def perform(world: World, direction: Point): Option[String]
   }
   // move 2 squares
   case object Dash extends Action  {
-    def perform(world: World, direction: Point): Unit = {
-      val canDash = world.attackOrMove(direction)
+    def perform(world: World, direction: Point): Option[String] = {
+      val (canDash, firstText) = world.attackOrMove(direction)
       if (canDash) {
-        world.attackOrMove(direction)
-      }
+        val (_, secondText) = world.attackOrMove(direction)
+        secondText
+      } else firstText
     }
   }
 
@@ -79,19 +87,23 @@ class Player(
       } yield p0
     }
 
-    def perform(world: World, direction: Point): Unit = {
+    def perform(world: World, direction: Point): Option[String] = {
       val origin = position + direction
+      val textList = ListBuffer[String]()
       neighbors(origin).foreach(p => {
-        world.monsters.find(_.position == p).map(m => attack(m))
+        world.monsters.find(_.position == p).map(m => textList += attack(m))
       })
+      if (textList.isEmpty) None else Some(textList.mkString("\n"))
     }
   }
   // attack 3x3 around player
   case object Blast extends Action  {
-    def perform(world: World, direction: Point): Unit = {
+    def perform(world: World, direction: Point): Option[String] = {
+      val textList = ListBuffer[String]()
       position.neighbors().foreach(p => {
-        world.monsters.find(_.position == p).map(m => attack(m))
+        world.monsters.find(_.position == p).map(m => textList += attack(m))
       })
+      if (textList.isEmpty) None else Some(textList.mkString("\n"))
     }
   }
 }
@@ -110,7 +122,7 @@ object Combat {
   }
 
   def bonusDamage(offense: Agent, defense: Agent): Int = {
-    val multiplier = Math.max(offense.attack - defense.defense, 1)
+    val multiplier = Math.max(offense.attackRating - defense.defenseRating, 1)
     bonusDamage(offense.damage, multiplier, offense.modifier())
   }
 

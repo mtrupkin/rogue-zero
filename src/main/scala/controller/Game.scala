@@ -1,6 +1,7 @@
 package controller
 
 import javafx.fxml.FXML
+import javafx.scene.control.{TextArea, Label}
 import javafx.scene.layout.Pane
 
 import control.ConsoleFx
@@ -21,10 +22,21 @@ trait Game { self: Controller =>
 
     @FXML var consolePane: Pane = _
 
+    @FXML var hitPoints: Label = _
+
+    @FXML var damage: Label = _
+
+    @FXML var attack: Label = _
+    @FXML var modifier: Label = _
+
+    @FXML var defense: Label = _
+
+    @FXML var textArea: TextArea = _
+
+
     val console = new ConsoleFx()
 
     def initialize(): Unit = {
-
       new sfxl.Pane(consolePane) {
         filterEvent(sfxi.KeyEvent.KeyPressed) {
           (event: sfxi.KeyEvent) => handleKeyPressed(event)
@@ -45,9 +57,24 @@ trait Game { self: Controller =>
 
     override def update(elapsed: Int): Unit = {
       console.draw(world)
+      updatePlayerInfo()
+
       if (world.player.hitPoints <= 0) {
         changeState(new GameController(WorldBuilder()))
       }
+    }
+
+    def updatePlayerInfo(): Unit = {
+      import world._
+
+      hitPoints.setText(player.hitPoints.toString)
+
+      damage.setText(player.damage.toString)
+
+      attack.setText(player.attackRating.toString)
+      modifier.setText(player.modifier().toString)
+
+      defense.setText(player.defenseRating.toString)
     }
 
     def handleMouseMove(event: sfxi.MouseEvent): Unit = {
@@ -71,7 +98,10 @@ trait Game { self: Controller =>
       code match {
         case ESCAPE => exit()
         case TAB => world.player.nextAction()
-        case _ => direction.map( p => if (event.controlDown) world.specialAction(p) else world.action(p) )
+        case _ => direction.map( p => {
+          val text = if (event.controlDown) world.specialAction(p) else world.action(p)
+          textArea.appendText(text)
+        } )
       }
     }
 

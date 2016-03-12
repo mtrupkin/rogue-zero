@@ -25,7 +25,7 @@ object WorldBuilder {
 
     val player = new Player(toWorld(areaMap.startAreaPosition, startPlayerPosition), 5, '@')
     val world = new World(player)
-    world.size.foreach(world.cells(_) = Terrain.wall(0, '!'))
+    world.size.foreach(world.cells(_) = Terrain.inBoundsWall)
 
     areaMap.areas.size.foreach(p => {
       if(Option(areaMap.areas(p)).isDefined) {
@@ -33,7 +33,6 @@ object WorldBuilder {
       }
     })
 
-    areaMap.debug()
     world.monsters = monsters.toList
 
     world.explore(player.position)
@@ -54,7 +53,7 @@ object WorldBuilder {
 
   def readArea(area: Area, p0: Point, monsters: ListBuffer[Monster]): Matrix[Terrain] = {
     val (terrainMap, metaMap) = parseArea(area)
-    metaMap.foreach((p, sc) => if (sc.c == 'M') monsters += Monster(toWorld(p0, p), 2, 'M'))
+    metaMap.foreach((p, sc) => if (sc.c == 'M') monsters += Monster("Monster", toWorld(p0, p), 2, 'M'))
     terrainMap
   }
 
@@ -75,16 +74,20 @@ object WorldBuilder {
 class AreaMap(startArea: Area) {
   val size = Size(8, 4)
   val areas = new Matrix[Area](size)
-  def random(): Point = {
+  def random2(): Point = {
     import Random.nextInt; import size._
     Point(nextInt(width), nextInt(height))
   }
 
-  val startAreaPosition = random()
+  def randomStartPosition(): Point = {
+    import Random.nextInt; import size._
+    Point(nextInt(width-2)+1, nextInt(height-2)+1)
+  }
+
+  val startAreaPosition = randomStartPosition()
   areas(startAreaPosition) = startArea
 
   nextArea(startArea.outputs.map(p => (startAreaPosition, p)))
-
 
   def nextArea(acc: List[(Point, Point)]): Unit = {
     acc match {
