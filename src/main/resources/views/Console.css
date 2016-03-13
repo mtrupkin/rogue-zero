@@ -4,7 +4,7 @@
 
 .dark, .dark .label  {
     -fx-background-color: black;
-    -fx-font-size: 16pt;
+    -fx-font-size: 24pt;
     -fx-font-family: "Segoe UI Semibold";
     -fx-text-fill: white;
 }

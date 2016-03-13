@@ -23,13 +23,7 @@ trait Game { self: Controller =>
     @FXML var consolePane: Pane = _
 
     @FXML var hitPoints: Label = _
-
-    @FXML var damage: Label = _
-
     @FXML var attack: Label = _
-    @FXML var modifier: Label = _
-
-    @FXML var defense: Label = _
 
     @FXML var textArea: TextArea = _
 
@@ -53,6 +47,8 @@ trait Game { self: Controller =>
       consolePane.getChildren.add(console)
 
       consolePane.setFocusTraversable(true)
+
+      textArea.appendText("Welcome to Alpha Rogue.\nPress Tab to cycle special actions. Ctrl-Direction to use special action.\n")
     }
 
     override def update(elapsed: Int): Unit = {
@@ -69,12 +65,7 @@ trait Game { self: Controller =>
 
       hitPoints.setText(player.hitPoints.toString)
 
-      damage.setText(player.damage.toString)
-
       attack.setText(player.attackRating.toString)
-      modifier.setText(player.modifier().toString)
-
-      defense.setText(player.defenseRating.toString)
     }
 
     def handleMouseMove(event: sfxi.MouseEvent): Unit = {
@@ -97,7 +88,7 @@ trait Game { self: Controller =>
       val direction = getDirection(code)
       code match {
         case ESCAPE => exit()
-        case TAB => world.player.nextAction()
+        case TAB => textArea.appendText(world.player.nextAction())
         case _ => direction.map( p => {
           val text = if (event.controlDown) world.specialAction(p) else world.action(p)
           textArea.appendText(text)

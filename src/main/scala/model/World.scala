@@ -5,6 +5,7 @@ import org.mtrupkin.core.{Matrix, Size, Point}
 import pathfinding.AStar
 
 import scala.collection.mutable.ListBuffer
+import scala.util.Random
 
 /**
   * Created by mtrupkin on 2/10/2016.
@@ -18,6 +19,7 @@ sealed trait Terrain {
   var explored: Boolean = false
   var marked: Boolean = false
   def display: ScreenChar = if(explored) sc else Terrain.unexplored
+  def action(world: World): Option[String] = None
 }
 
 trait TerrainMap {
@@ -42,6 +44,39 @@ case class Door(areaID: Int, var open: Boolean = false) extends Terrain {
   def sc: ScreenChar = if (open) openScreenChar else closedScreenChar
 }
 
+case class Treasure(areaID: Int) extends Terrain {
+  var looted: Boolean = false
+  val unlootedScreenChar = ScreenChar('*', Colors.Yellow, Terrain.floorColor)
+  val lootedScreenChar = ScreenChar('.', Colors.White, Terrain.floorColor)
+
+  def name = "Treasure"
+  def move = true
+
+  override def sc: ScreenChar = if (looted) lootedScreenChar else unlootedScreenChar
+
+  override def action(world: World): Option[String] = {
+    if (looted) return None
+
+    looted = true
+    Random.nextInt(100) match {
+      case x if 0 until 20 contains x => {
+        world.player.hitPoints += 2
+        Some("Healing potion.")
+      }
+      case x if 20 until 40 contains x => {
+        world.player.attackRating += 1
+        Some("Weapon damage +1.")
+      }
+      case x if 40 until 60 contains x => {
+        world.player.modifier += 5
+        Some("Weapon to hit +1")
+      }
+      case _ => None
+    }
+  }
+}
+
+
 object Terrain {
   val floorColor = RGB(70, 70, 70)
 
@@ -55,6 +90,12 @@ object Terrain {
 
   def floor(areaID: Int, sc: ScreenChar) = Cell(areaID, "Floor", sc.copy(c = '.'), move = true)
   def wall(areaID: Int, sc: ScreenChar) = Cell(areaID, "Wall", sc, move = false)
+  def stairsDown(areaID: Int) = new Cell(areaID, "Stairs Down", ScreenChar('>', Colors.White, floorColor), move = true) {
+    override def action(world: World): Option[String] = {
+      WorldBuilder.newWorld(world)
+      Some(s"Descending to level ${world.level}")
+    }
+  }
 
   val outOfBoundsWall: Cell = wall(-1, ScreenChar('#', Colors.White, floorColor))
   //val inBoundsWall: Cell = wall(-2, ScreenChar('#', Colors.White, floorColor))
@@ -65,6 +106,7 @@ object Terrain {
 }
 
 class World(val player: Player) extends TerrainMap {
+  var level = 0
   val size = Size(40, 20)
   val cells = new Matrix[Terrain](size)
   var monsters = List[Monster]()
@@ -72,8 +114,10 @@ class World(val player: Player) extends TerrainMap {
   def apply(p: Point): Terrain = if(size.in(p)) cells(p) else Terrain.outOfBoundsWall
 
   def action(direction: Point): String = {
+    val moveMonsters = triggersMonsterMove(player.position + direction)
     val (_, playerText) = attackOrMove(direction)
-    val gameText = endAction()
+
+    val gameText = if (moveMonsters) endAction() else None
 
     val s1 = playerText match {
       case Some(t) => s"\n$t"
@@ -103,9 +147,12 @@ class World(val player: Player) extends TerrainMap {
 
   def endAction(): Option[String] = {
     val text = ListBuffer[String]()
-    monsters.foreach(m => if (m.hitPoints <= 0) text.append(s"${m.name} died"))
+    monsters.foreach(m => if (m.hitPoints <= 0) text.append(s"${m.name} died."))
     monsters = monsters.filter(_.hitPoints > 0)
     monsters.foreach(moveMonster(_).map(t => text.append(t)))
+
+    this(player.position).action(this).map(t => text.append(t))
+
     if (text.isEmpty) None else Some(text.mkString("\n"))
   }
 
@@ -127,6 +174,16 @@ class World(val player: Player) extends TerrainMap {
       }
     }
   }
+
+  def triggersMonsterMove(p: Point): Boolean = {
+    val newTerrain = this(p)
+    newTerrain match {
+      case Door(_, open) => open
+      case Cell(_, _, _, move) => move
+      case c: Treasure => true
+    }
+  }
+
 
   // returns true if moved only
   def move(p: Point): Boolean = {

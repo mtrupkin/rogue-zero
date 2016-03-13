@@ -14,7 +14,7 @@ class ConsoleApp extends Application {
     val is = getClass.getResourceAsStream(s"/fonts/RobotoMono-Regular.ttf")
 		ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, is))
 
-		primaryStage.setTitle("Rogue")
+		primaryStage.setTitle("Alpha Rogue")
 
 		object Controller extends Controller {
 			lazy val initialState: ControllerState = new GameController(WorldBuilder())

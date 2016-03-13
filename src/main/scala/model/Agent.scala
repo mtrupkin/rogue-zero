@@ -13,13 +13,11 @@ trait Agent {
   var position: Point
   var hitPoints: Int
 
-  // combat stats
-  var damage: Int = 1
-  var attackRating: Int = 1
+  // combat stat
+  var attackRating: Int
 
   // situational modifiers
-  def modifier(): Int = 0
-  var defenseRating: Int = 1
+  var modifier: Int = 0
 
   val sc: ScreenChar
 }
@@ -28,12 +26,13 @@ case class Monster(
   val name: String,
   var position: Point,
   var hitPoints: Int,
+  var attackRating: Int,
   val sc: ScreenChar) extends Agent {
   def attack(player: Player): Option[String] = {
-    val bonusDamage = Combat.bonusDamage(this, player)
-    if (bonusDamage > 0 ) {
-      player.hitPoints -= bonusDamage
-      Some(s"Player damaged: $bonusDamage")
+    val damage = Combat.damage(this, player)
+    if (damage > 0 ) {
+      player.hitPoints -= damage
+      Some(s"Monster attacks player for $damage damage.")
     } else None
   }
 }
@@ -41,26 +40,26 @@ case class Monster(
 class Player(
   var position: Point,
   var hitPoints: Int,
+  var attackRating: Int = 1,
   val sc: ScreenChar) extends Agent {
 
   var currentActionIndex = 0
   val actions: List[Action] = List(Dash, Burst, Blast)
 
-  def nextAction(): Unit = {
+  def nextAction(): String = {
     currentActionIndex += 1
     if (currentActionIndex >= actions.size) currentActionIndex = 0
-    println(actions(currentActionIndex))
+    s"\nSpecial action: ${actions(currentActionIndex)}"
   }
 
   def action(): Action = actions(currentActionIndex)
 
   def attack(monster: Monster): String = {
-    val bonusDamage = Combat.bonusDamage(this, monster)
-    val totalDamage = damage + bonusDamage
+    val damage = Math.max(1, Combat.damage(this, monster))
 
-    monster.hitPoints -= totalDamage
+    monster.hitPoints -= damage
 
-    s"Attack ${monster.name}: $totalDamage"
+    s"Player attacks ${monster.name} for $damage damage."
   }
 
   sealed trait Action {
@@ -72,7 +71,11 @@ class Player(
       val (canDash, firstText) = world.attackOrMove(direction)
       if (canDash) {
         val (_, secondText) = world.attackOrMove(direction)
-        secondText
+        secondText match {
+          case Some(text) => Some(s"\nDash\n$text")
+          case None => Some(s"\nDash")
+        }
+
       } else firstText
     }
   }
@@ -93,7 +96,7 @@ class Player(
       neighbors(origin).foreach(p => {
         world.monsters.find(_.position == p).map(m => textList += attack(m))
       })
-      if (textList.isEmpty) None else Some(textList.mkString("\n"))
+      if (textList.isEmpty) None else Some(s"\nBurst\n${textList.mkString("\n")}")
     }
   }
   // attack 3x3 around player
@@ -103,7 +106,7 @@ class Player(
       position.neighbors().foreach(p => {
         world.monsters.find(_.position == p).map(m => textList += attack(m))
       })
-      if (textList.isEmpty) None else Some(textList.mkString("\n"))
+      if (textList.isEmpty) None else Some(s"\nBlast\n${textList.mkString("\n")}")
     }
   }
 }
@@ -112,18 +115,14 @@ object Combat {
   // chance that a multiple is successful
   val multipleDamageChance = 50
 
-  private def bonusDamage(damage: Int, multiplier: Int, modifier: Int): Int = {
-    val bonuses = for {
-      i <- 1 to multiplier
-      if (Random.nextInt(100) + modifier > multipleDamageChance)
-    } yield damage
+  private def totalHits(attack: Int, modifier: Int): Int = {
+    val hits = for {
+      i <- 1 to attack
+      if ((Random.nextInt(100) + modifier) > multipleDamageChance)
+    } yield 1
 
-    bonuses.sum
+    hits.sum
   }
 
-  def bonusDamage(offense: Agent, defense: Agent): Int = {
-    val multiplier = Math.max(offense.attackRating - defense.defenseRating, 1)
-    bonusDamage(offense.damage, multiplier, offense.modifier())
-  }
-
+  def damage(offense: Agent, defense: Agent): Int = totalHits(offense.attackRating, offense.modifier)
 }
